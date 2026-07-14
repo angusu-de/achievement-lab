@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 PREFIX = "[ALAB"
 SUPPORTED = ("quickdraw", "yolo", "pull-shark", "pair-extraordinaire")
 

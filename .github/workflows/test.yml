@@ -23,3 +23,5 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Exercise read-only catalog
         run: python achievement_lab.py catalog --json
+      - name: Check static web JavaScript
+        run: node --check web/app.js

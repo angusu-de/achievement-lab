@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Achievement Lab — public GitHub profile workspace</title>
+  <meta name="description" content="Read public GitHub profile signals and choose a responsible next move. No login, token, or install required.">
+  <meta name="theme-color" content="#101011">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src https://avatars.githubusercontent.com; connect-src https://api.github.com; base-uri 'none'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta property="og:title" content="Achievement Lab">
+  <meta property="og:description" content="A private-by-design workspace for public GitHub profile signals.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/angusu-de/achievement-lab/main/assets/social-preview.png">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body data-default-login="IamAngusU">
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="https://github.com/angusu-de/achievement-lab" aria-label="Achievement Lab source on GitHub">
+        <span class="brand__mark" aria-hidden="true">A</span>
+        <span><strong>Achievement Lab</strong><small>open source · v1.4</small></span>
+      </a>
+      <div class="connection" title="This app does not request or store a GitHub login">
+        <span class="connection__state"><i></i>No login</span>
+        <a class="text-button" href="https://github.com/angusu-de/achievement-lab" rel="noopener">View source ↗</a>
+      </div>
+    </header>
+
+    <section class="intro">
+      <p class="eyebrow">Public GitHub profile workspace</p>
+      <h1>Read the signal.<br>Choose the next move.</h1>
+      <p>Public data goes directly from GitHub to your browser. No account connection, token, or angusu.de login.</p>
+    </section>
+
+    <section class="workspace" aria-label="GitHub Profile Lab workspace">
+      <form class="lookup" data-lookup>
+        <label for="username">GitHub username</label>
+        <div class="lookup__control">
+          <span aria-hidden="true">@</span>
+          <input id="username" name="username" maxlength="39" autocomplete="off" spellcheck="false" value="IamAngusU" required>
+          <button type="submit">Analyze</button>
+        </div>
+      </form>
+
+      <div class="profile-head" data-profile-head hidden>
+        <img data-avatar src="" width="52" height="52" alt="">
+        <div><strong data-name></strong><span data-bio></span></div>
+        <a data-profile target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+
+      <nav class="tabs" aria-label="Workspace views">
+        <button class="is-active" type="button" data-tab="overview">Overview</button>
+        <button type="button" data-tab="projects">Projects</button>
+        <button type="button" data-tab="achievements">Achievements</button>
+        <button type="button" data-tab="lab">Run the lab</button>
+      </nav>
+
+      <div class="loading" data-loading>
+        <span></span><p>Reading public GitHub data…</p>
+      </div>
+
+      <section class="pane is-active" data-pane="overview" hidden>
+        <div class="stats" data-stats></div>
+        <div class="split">
+          <article>
+            <div class="section-title"><span>Profile health</span><small>Public signals</small></div>
+            <div class="health" data-health></div>
+          </article>
+          <article class="plan-card">
+            <div class="section-title"><span>Next moves</span><small>Local checklist</small></div>
+            <div class="plan" data-plan></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="pane" data-pane="projects" hidden>
+        <div class="pane-head"><div><p class="eyebrow">Proof shelf</p><h2>Projects people should open.</h2></div><small data-project-note></small></div>
+        <div class="repos" data-repos></div>
+      </section>
+
+      <section class="pane" data-pane="achievements" hidden>
+        <div class="pane-head"><div><p class="eyebrow">Official profile view</p><h2>Achievements, with context.</h2></div><a class="small-link" data-achievements target="_blank" rel="noopener">Open on GitHub ↗</a></div>
+        <div class="achievement-grid">
+          <article><span>Pull Shark</span><strong>x4 visible max</strong><small>Useful pull requests that get merged.</small></article>
+          <article><span>Galaxy Brain</span><strong>x4 visible max</strong><small>Answers accepted in GitHub Discussions.</small></article>
+          <article><span>Pair Extraordinaire</span><strong>x4 visible max</strong><small>Genuine co-authored commits.</small></article>
+        </div>
+        <div class="atlas-row">
+          <p>GitHub exposes no documented Achievements API. This app links to GitHub instead of guessing badge state.</p>
+          <a href="https://github.com/angusu-de/achievement-lab/blob/main/docs/ACHIEVEMENTS.md">Open the full atlas ↗</a>
+        </div>
+      </section>
+
+      <section class="pane" data-pane="lab" hidden>
+        <div class="pane-head"><div><p class="eyebrow">Controlled actions</p><h2>Use GitHub or your own machine.</h2></div></div>
+        <div class="route-grid">
+          <article class="route-card is-ready">
+            <span class="route-state">Browser route</span><h3>Open in Codespaces</h3>
+            <p>GitHub creates the workspace and handles your identity. Follow the guided terminal; every write is previewed and confirmed.</p>
+            <a class="route-action route-action--light" href="https://codespaces.new/angusu-de/achievement-lab?quickstart=1" target="_blank" rel="noopener">Launch on GitHub ↗</a>
+          </article>
+          <article class="route-card">
+            <span class="route-state">Local route</span><h3>Run on your computer</h3>
+            <p>Clone the repository, let GitHub CLI connect the accounts you choose, then use the same guarded assistant.</p>
+            <code>python3 achievement_lab.py</code>
+            <a href="https://github.com/angusu-de/achievement-lab#safe-experiment-runner">Open setup guide ↗</a>
+          </article>
+        </div>
+        <p class="privacy-note"><strong>Trust boundary:</strong> this page only reads public API responses. Controlled writes happen inside GitHub Codespaces or your terminal — never through angusu.de.</p>
+      </section>
+    </section>
+
+    <footer><span>Read-only by design.</span><span><a href="https://github.com/angusu-de/achievement-lab/blob/main/SECURITY.md">Security</a> · <a href="https://github.com/angusu-de/achievement-lab">Source & method ↗</a></span></footer>
+  </main>
+  <noscript>JavaScript is required to request public GitHub profile data.</noscript>
+  <script src="app.js" defer></script>
+</body>
+</html>
