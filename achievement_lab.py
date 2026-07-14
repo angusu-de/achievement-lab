@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 PREFIX = "[ALAB"
 SUPPORTED = ("quickdraw", "yolo", "pull-shark", "pair-extraordinaire")
 
@@ -403,12 +403,87 @@ def choose(prompt: str, options: list[tuple[str, str]], *, default: int = 1) -> 
         print(f"Enter a number from 1 to {len(options)}.")
 
 
+def connected_accounts() -> list[str]:
+    """Return healthy GitHub CLI accounts without exposing their tokens."""
+    if shutil.which("gh") is None:
+        return []
+    result = subprocess.run(
+        ["gh", "auth", "status", "--hostname", "github.com", "--json", "hosts"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        return []
+    try:
+        hosts = json.loads(result.stdout).get("hosts", {})
+    except json.JSONDecodeError:
+        return []
+    accounts = hosts.get("github.com", [])
+    return [
+        str(account["login"])
+        for account in accounts
+        if account.get("state") == "success" and account.get("login")
+    ]
+
+
+def connect_github() -> list[str]:
+    ui = Ui()
+    ui.banner()
+    if shutil.which("gh") is None:
+        raise LabError("GitHub CLI is required. Install it from https://cli.github.com/ first.")
+    before = connected_accounts()
+    if before:
+        ui.success("Connected: " + ", ".join(f"@{login}" for login in before))
+        selected = choose("GitHub connection", [
+            ("Keep these accounts", "Return without changing authentication."),
+            ("Connect another account", "Open GitHub's official browser/device login."),
+        ])
+        if selected == 1:
+            return before
+    else:
+        print("No working GitHub CLI account was found.\n")
+        selected = choose("Connect now?", [
+            ("Connect with GitHub", "Uses GitHub's official browser/device flow."),
+            ("Not now", "Return without changing authentication."),
+        ])
+        if selected == 2:
+            return []
+    print("\nGitHub will show a one-time code. No token is copied into Achievement Lab.\n")
+    result = subprocess.run(
+        ["gh", "auth", "login", "--hostname", "github.com", "--web", "--git-protocol", "https"],
+        check=False,
+    )
+    if result.returncode != 0:
+        raise LabError("GitHub login did not complete. No lab action was run.")
+    after = connected_accounts()
+    if not after:
+        raise LabError("GitHub CLI still reports no connected account.")
+    ui.success("Connected: " + ", ".join(f"@{login}" for login in after))
+    return after
+
+
+def choose_account(label: str, accounts: list[str], *, exclude: str = "") -> str:
+    available = [login for login in accounts if login.casefold() != exclude.casefold()]
+    if not available:
+        return ask(label)
+    options = [(f"@{login}", "Connected through GitHub CLI.") for login in available]
+    options.append(("Enter a different username", "Useful before connecting the second account."))
+    selected = choose(label, options)
+    return available[selected - 1] if selected <= len(available) else ask(label)
+
+
 def create_config(path: Path, *, target: str = "", helper: str = "") -> Config:
     ui = Ui()
     ui.banner()
     ui.step(1, "Choose the two accounts", "Both accounts must belong to you or authorize the test.")
-    target = target or ask("Target GitHub username")
-    helper = helper or ask("Helper GitHub username")
+    accounts = connected_accounts()
+    if accounts:
+        ui.success("GitHub CLI: " + ", ".join(f"@{login}" for login in accounts))
+    else:
+        ui.note("No connected GitHub CLI account found. Run the Connect command next.")
+    target = target or choose_account("Target GitHub account", accounts)
+    helper = helper or choose_account("Helper GitHub account", accounts, exclude=target)
     ui.step(2, "Keep evidence isolated", "Private is the recommended default.")
     repo = ask("Evidence repository name", default="achievement-lab-private")
     visibility_index = choose(
@@ -445,16 +520,23 @@ def guided_mode(config_path: Path) -> int:
     ui = Ui()
     ui.banner()
     if not config_path.exists():
-        print("No local configuration was found. Let's create one first.\n")
+        if not connected_accounts():
+            print("No GitHub account is connected yet. Let's use GitHub's official login first.\n")
+            connect_github()
+        print("\nNo local configuration was found. Let's create one.\n")
         create_config(config_path)
         return 0
 
     config = load_config(config_path)
     while True:
+        accounts = connected_accounts()
+        account_label = ", ".join(f"@{login}" for login in accounts) or "not connected"
+        print(f"GitHub: {account_label}")
         print(f"Target: @{config.target_login}  ·  Evidence: {config.full_repo} ({config.visibility})\n")
         selected = choose("What would you like to do?", [
             ("Read the achievement atlas", "No account access and no writes."),
-            ("Check my setup", "Verify gh credentials and the repository boundary."),
+            ("Manage GitHub connection", "See connected accounts or use GitHub's official login."),
+            ("Check my setup", "Verify credentials and the repository boundary."),
             ("Prepare the isolated lab", "Preview, then create or repair the evidence repository."),
             ("Run one controlled event", "Choose one scenario; the default count is always one."),
             ("Show evidence status", "Read counts from the isolated repository."),
@@ -464,13 +546,15 @@ def guided_mode(config_path: Path) -> int:
         if selected == 1:
             catalog()
         elif selected == 2:
-            Lab(config).doctor()
+            connect_github()
         elif selected == 3:
+            Lab(config).doctor()
+        elif selected == 4:
             Lab(config, dry_run=True).init()
             print()
             confirm(f"Create only {config.full_repo}?", yes=False, dry_run=False)
             Lab(config).init()
-        elif selected == 4:
+        elif selected == 5:
             scenario_index = choose("Choose one event", [
                 ("Quickdraw", "Create and immediately close one labelled issue."),
                 ("YOLO event test", "Merge one author-created PR without review; award is uncertain."),
@@ -485,7 +569,7 @@ def guided_mode(config_path: Path) -> int:
             print()
             confirm(f"Run exactly 1 x {scenario} in {config.full_repo}?", yes=False, dry_run=False)
             Lab(config).add(scenario, 1)
-        elif selected == 5:
+        elif selected == 6:
             Lab(config).status()
         else:
             ui.success("Nothing else was changed.")
@@ -517,6 +601,7 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     commands = root.add_subparsers(dest="command")
     commands.add_parser("wizard", help="open the guided, interactive experience")
+    commands.add_parser("connect", help="connect GitHub through the official gh login flow")
     setup = commands.add_parser("setup", help="create a safe local configuration")
     setup.add_argument("--target", default="")
     setup.add_argument("--helper", default="")
@@ -544,6 +629,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "wizard":
             return guided_mode(config_path)
+        if args.command == "connect":
+            connect_github()
+            return 0
         if args.command == "setup":
             create_config(config_path, target=args.target, helper=args.helper)
             return 0

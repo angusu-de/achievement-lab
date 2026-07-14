@@ -57,6 +57,16 @@ class GuidedSetupTests(unittest.TestCase):
             ui = achievement_lab.Ui()
             self.assertEqual(ui.paint("1", "safe"), "safe")
 
+    def test_connected_accounts_filters_failed_credentials(self):
+        payload = json.dumps({"hosts": {"github.com": [
+            {"login": "target", "state": "success"},
+            {"login": "expired", "state": "failed"},
+        ]}})
+        completed = mock.Mock(returncode=0, stdout=payload)
+        with mock.patch.object(achievement_lab.shutil, "which", return_value="/usr/bin/gh"), \
+             mock.patch.object(achievement_lab.subprocess, "run", return_value=completed):
+            self.assertEqual(achievement_lab.connected_accounts(), ["target"])
+
 
 if __name__ == "__main__":
     unittest.main()

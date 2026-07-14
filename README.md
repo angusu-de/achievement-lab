@@ -72,6 +72,14 @@ writes, and runs one controlled event at a time.
 python3 achievement_lab.py
 ```
 
+The assistant detects GitHub accounts already connected through `gh`. Choose
+**Manage GitHub connection** to keep them or add another account with GitHub's
+official browser/device flow. Achievement Lab never asks you to paste a token.
+
+```bash
+python3 achievement_lab.py connect
+```
+
 No hidden defaults: the screen always shows the target account, repository,
 visibility, event, and exact count before confirmation.
 
