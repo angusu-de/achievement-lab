@@ -60,6 +60,10 @@ Galaxy Brain is documented in [the experiment guide](docs/EXPERIMENTS.md), but
 is intentionally not automated yet because Discussions permissions and
 categories vary between repositories.
 
+Before attempting community-observed tiers, read the
+[tier strategy](docs/TIER_STRATEGY.md) and the
+[private-evidence guide](docs/PRIVATE_EVIDENCE.md).
+
 ## Safety model
 
 The configured repository name must contain `achievement-lab`. Writes are
