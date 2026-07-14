@@ -9,10 +9,11 @@ the evidence, and allow GitHub time to propagate the result before adding more.
 
 The lab creates and immediately closes a clearly labelled issue. Start with one.
 
-## YOLO
+## YOLO event test
 
 The target account authors and merges a pull request without a review. The pull
-request changes only a timestamped evidence file on a dedicated branch.
+request changes only a timestamped evidence file on a dedicated branch. Current
+awarding is uncertain, so the runner reports the event and never promises a badge.
 
 ## Pull Shark
 

@@ -1,0 +1,55 @@
+name: Achievement observation
+description: Share a small, reproducible observation without exposing private evidence.
+title: "[Observation]: "
+labels: [observation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping separate reproducible behavior from folklore. Never paste tokens, private URLs, or personal data.
+  - type: dropdown
+    id: achievement
+    attributes:
+      label: Achievement
+      options:
+        - Pull Shark
+        - Galaxy Brain
+        - Pair Extraordinaire
+        - Starstruck
+        - Quickdraw
+        - Public Sponsor
+        - YOLO event test
+        - Other or historical
+    validations:
+      required: true
+  - type: textarea
+    id: event
+    attributes:
+      label: Smallest event performed
+      description: Describe the legitimate action, not automation volume.
+    validations:
+      required: true
+  - type: dropdown
+    id: visibility
+    attributes:
+      label: Evidence visibility
+      options:
+        - Public
+        - Private and anonymized
+        - Mixed
+    validations:
+      required: true
+  - type: input
+    id: propagation
+    attributes:
+      label: Approximate propagation time
+      placeholder: e.g. visible within 30 minutes
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I controlled or had permission to use every involved account and repository.
+          required: true
+        - label: I did not automate stars, follows, reactions, sponsorships, or third-party activity.
+          required: true
