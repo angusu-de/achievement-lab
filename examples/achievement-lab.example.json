@@ -1,0 +1,9 @@
+{
+  "target_login": "your-primary-test-account",
+  "helper_login": "your-helper-account",
+  "evidence_repo": "achievement-lab-private",
+  "visibility": "private",
+  "default_branch": "main",
+  "delay_seconds": 1.0,
+  "safe_batch_limit": 16
+}
