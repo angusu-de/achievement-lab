@@ -17,9 +17,54 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 PREFIX = "[ALAB"
 SUPPORTED = ("quickdraw", "yolo", "pull-shark", "pair-extraordinaire")
+
+ACHIEVEMENTS: tuple[dict[str, Any], ...] = (
+    {
+        "name": "Pull Shark",
+        "status": "observed",
+        "tiers": (2, 16, 128, 1024),
+        "route": "Author useful pull requests that get merged.",
+        "automation": "guarded",
+    },
+    {
+        "name": "Galaxy Brain",
+        "status": "observed",
+        "tiers": (2, 8, 16, 32),
+        "route": "Give answers in Discussions that the question author accepts.",
+        "automation": "manual",
+    },
+    {
+        "name": "Pair Extraordinaire",
+        "status": "observed",
+        "tiers": (10, 24, 48, 64),
+        "route": "Ship genuine commits credited to multiple authors.",
+        "automation": "guarded",
+    },
+    {
+        "name": "Starstruck",
+        "status": "observed-social",
+        "tiers": (16, 128, 512, 4096),
+        "route": "Build repositories people voluntarily choose to star.",
+        "automation": "never",
+    },
+    {
+        "name": "Quickdraw",
+        "status": "observed",
+        "tiers": (),
+        "route": "Close an issue shortly after opening it.",
+        "automation": "guarded",
+    },
+    {
+        "name": "Public Sponsor",
+        "status": "active-social",
+        "tiers": (),
+        "route": "Publicly sponsor open-source work through GitHub Sponsors.",
+        "automation": "never",
+    },
+)
 
 
 class LabError(RuntimeError):
@@ -312,11 +357,31 @@ def confirm(message: str, *, yes: bool, dry_run: bool) -> None:
         raise LabError("Cancelled.")
 
 
+def catalog(*, as_json: bool = False) -> None:
+    """Print the read-only achievement catalog without loading credentials."""
+    if as_json:
+        print(json.dumps({"visible_tier_max": 4, "achievements": ACHIEVEMENTS}, indent=2))
+        return
+    print("Achievement Lab catalog (observed checkpoints, not GitHub contracts)")
+    print("Visible tier ceiling: x4; there is no visible x8 tier.\n")
+    for achievement in ACHIEVEMENTS:
+        tiers = " / ".join(
+            f"x{index}: {count}" for index, count in enumerate(achievement["tiers"], start=1)
+        )
+        if not tiers:
+            tiers = "not tiered"
+        print(f"{achievement['name']} [{achievement['automation']}] — {tiers}")
+        print(f"  {achievement['route']}")
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     root.add_argument("--config", default="achievement-lab.json")
     root.add_argument("--dry-run", action="store_true")
+    root.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     commands = root.add_subparsers(dest="command", required=True)
+    catalog_parser = commands.add_parser("catalog", help="print the read-only achievement atlas")
+    catalog_parser.add_argument("--json", action="store_true", dest="as_json")
     commands.add_parser("doctor")
     init = commands.add_parser("init")
     init.add_argument("--yes", action="store_true")
@@ -328,9 +393,12 @@ def parser() -> argparse.ArgumentParser:
     return root
 
 
-def main() -> int:
-    args = parser().parse_args()
+def main(argv: list[str] | None = None) -> int:
+    args = parser().parse_args(argv)
     try:
+        if args.command == "catalog":
+            catalog(as_json=args.as_json)
+            return 0
         config = load_config(Path(args.config))
         lab = Lab(config, dry_run=args.dry_run)
         if args.command == "doctor":

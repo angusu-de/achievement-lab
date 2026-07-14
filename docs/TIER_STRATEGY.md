@@ -3,6 +3,8 @@
 GitHub does not expose a stable achievement-threshold API. Tier numbers found
 in community references should be treated as hypotheses, not product contracts.
 
+Tiered achievements visibly stop at `x4`. There is no visible `x8` tier.
+
 ## A professional progression
 
 1. Create the minimum evidence for the base achievement.
