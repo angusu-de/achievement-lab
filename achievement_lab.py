@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 PREFIX = "[ALAB"
 SUPPORTED = ("quickdraw", "yolo", "pull-shark", "pair-extraordinaire")
 
@@ -357,6 +357,142 @@ def confirm(message: str, *, yes: bool, dry_run: bool) -> None:
         raise LabError("Cancelled.")
 
 
+class Ui:
+    """Small dependency-free terminal UI that stays readable without color."""
+
+    def __init__(self) -> None:
+        self.color = sys.stdout.isatty() and os.getenv("NO_COLOR") is None
+
+    def paint(self, code: str, value: str) -> str:
+        return f"\033[{code}m{value}\033[0m" if self.color else value
+
+    def banner(self) -> None:
+        print()
+        print(self.paint("1;38;5;57", "  ACHIEVEMENT LAB"))
+        print(self.paint("38;5;244", "  Clear profile choices. Controlled experiments."))
+        print()
+
+    def step(self, number: int, title: str, detail: str = "") -> None:
+        print(f"{self.paint('1;38;5;57', f'{number:02d}')}  {self.paint('1', title)}")
+        if detail:
+            print(f"    {self.paint('38;5;244', detail)}")
+
+    def note(self, value: str) -> None:
+        print(self.paint("38;5;244", f"    {value}"))
+
+    def success(self, value: str) -> None:
+        print(self.paint("1;32", f"✓ {value}"))
+
+
+def ask(prompt: str, *, default: str = "") -> str:
+    suffix = f" [{default}]" if default else ""
+    value = input(f"{prompt}{suffix}: ").strip()
+    return value or default
+
+
+def choose(prompt: str, options: list[tuple[str, str]], *, default: int = 1) -> int:
+    print(prompt)
+    for index, (label, detail) in enumerate(options, start=1):
+        print(f"  {index}. {label}")
+        if detail:
+            print(f"     {detail}")
+    while True:
+        raw = input(f"Choose [{default}]: ").strip() or str(default)
+        if raw.isdigit() and 1 <= int(raw) <= len(options):
+            return int(raw)
+        print(f"Enter a number from 1 to {len(options)}.")
+
+
+def create_config(path: Path, *, target: str = "", helper: str = "") -> Config:
+    ui = Ui()
+    ui.banner()
+    ui.step(1, "Choose the two accounts", "Both accounts must belong to you or authorize the test.")
+    target = target or ask("Target GitHub username")
+    helper = helper or ask("Helper GitHub username")
+    ui.step(2, "Keep evidence isolated", "Private is the recommended default.")
+    repo = ask("Evidence repository name", default="achievement-lab-private")
+    visibility_index = choose(
+        "Repository visibility",
+        [("Private (recommended)", "The repetitive event trail stays access-controlled."),
+         ("Public", "Use only when the evidence itself helps readers.")],
+    )
+    config = Config(
+        target_login=target,
+        helper_login=helper,
+        evidence_repo=repo,
+        visibility="private" if visibility_index == 1 else "public",
+    )
+    config.validate()
+    path.write_text(json.dumps({
+        "target_login": config.target_login,
+        "helper_login": config.helper_login,
+        "evidence_repo": config.evidence_repo,
+        "visibility": config.visibility,
+        "default_branch": config.default_branch,
+        "delay_seconds": config.delay_seconds,
+        "safe_batch_limit": config.safe_batch_limit,
+    }, indent=2) + "\n")
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass
+    ui.success(f"Saved local config to {path}")
+    ui.note("This file is ignored by Git. Run the guided mode again to continue.")
+    return config
+
+
+def guided_mode(config_path: Path) -> int:
+    ui = Ui()
+    ui.banner()
+    if not config_path.exists():
+        print("No local configuration was found. Let's create one first.\n")
+        create_config(config_path)
+        return 0
+
+    config = load_config(config_path)
+    while True:
+        print(f"Target: @{config.target_login}  ·  Evidence: {config.full_repo} ({config.visibility})\n")
+        selected = choose("What would you like to do?", [
+            ("Read the achievement atlas", "No account access and no writes."),
+            ("Check my setup", "Verify gh credentials and the repository boundary."),
+            ("Prepare the isolated lab", "Preview, then create or repair the evidence repository."),
+            ("Run one controlled event", "Choose one scenario; the default count is always one."),
+            ("Show evidence status", "Read counts from the isolated repository."),
+            ("Exit", "Make no changes."),
+        ])
+        print()
+        if selected == 1:
+            catalog()
+        elif selected == 2:
+            Lab(config).doctor()
+        elif selected == 3:
+            Lab(config, dry_run=True).init()
+            print()
+            confirm(f"Create only {config.full_repo}?", yes=False, dry_run=False)
+            Lab(config).init()
+        elif selected == 4:
+            scenario_index = choose("Choose one event", [
+                ("Quickdraw", "Create and immediately close one labelled issue."),
+                ("YOLO event test", "Merge one author-created PR without review; award is uncertain."),
+                ("Pull Shark", "Create one PR and let the helper merge it."),
+                ("Pair Extraordinaire", "Create one genuinely co-authored commit."),
+                ("Back", "Return without writing."),
+            ])
+            if scenario_index == 5:
+                continue
+            scenario = SUPPORTED[scenario_index - 1]
+            Lab(config, dry_run=True).add(scenario, 1)
+            print()
+            confirm(f"Run exactly 1 x {scenario} in {config.full_repo}?", yes=False, dry_run=False)
+            Lab(config).add(scenario, 1)
+        elif selected == 5:
+            Lab(config).status()
+        else:
+            ui.success("Nothing else was changed.")
+            return 0
+        print("\n" + "─" * 64 + "\n")
+
+
 def catalog(*, as_json: bool = False) -> None:
     """Print the read-only achievement catalog without loading credentials."""
     if as_json:
@@ -379,7 +515,11 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--config", default="achievement-lab.json")
     root.add_argument("--dry-run", action="store_true")
     root.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
-    commands = root.add_subparsers(dest="command", required=True)
+    commands = root.add_subparsers(dest="command")
+    commands.add_parser("wizard", help="open the guided, interactive experience")
+    setup = commands.add_parser("setup", help="create a safe local configuration")
+    setup.add_argument("--target", default="")
+    setup.add_argument("--helper", default="")
     catalog_parser = commands.add_parser("catalog", help="print the read-only achievement atlas")
     catalog_parser.add_argument("--json", action="store_true", dest="as_json")
     commands.add_parser("doctor")
@@ -396,10 +536,21 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
+        config_path = Path(args.config)
+        if args.command is None:
+            if sys.stdin.isatty():
+                return guided_mode(config_path)
+            parser().print_help()
+            return 0
+        if args.command == "wizard":
+            return guided_mode(config_path)
+        if args.command == "setup":
+            create_config(config_path, target=args.target, helper=args.helper)
+            return 0
         if args.command == "catalog":
             catalog(as_json=args.as_json)
             return 0
-        config = load_config(Path(args.config))
+        config = load_config(config_path)
         lab = Lab(config, dry_run=args.dry_run)
         if args.command == "doctor":
             lab.doctor()

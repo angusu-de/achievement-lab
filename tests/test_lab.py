@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 import achievement_lab
 
@@ -41,6 +42,20 @@ class CatalogTests(unittest.TestCase):
             result = achievement_lab.main(["catalog"])
         self.assertEqual(result, 0)
         self.assertIn("no visible x8 tier", output.getvalue())
+
+
+class GuidedSetupTests(unittest.TestCase):
+    def test_no_command_prints_help_in_non_interactive_use(self):
+        output = io.StringIO()
+        with mock.patch.object(achievement_lab.sys.stdin, "isatty", return_value=False), redirect_stdout(output):
+            result = achievement_lab.main([])
+        self.assertEqual(result, 0)
+        self.assertIn("wizard", output.getvalue())
+
+    def test_ui_respects_no_color(self):
+        with mock.patch.dict("os.environ", {"NO_COLOR": "1"}):
+            ui = achievement_lab.Ui()
+            self.assertEqual(ui.paint("1", "safe"), "safe")
 
 
 if __name__ == "__main__":

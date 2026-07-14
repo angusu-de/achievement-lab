@@ -59,6 +59,21 @@ See the [atlas](docs/ACHIEVEMENTS.md) for observed checkpoints, confidence label
 
 The runner creates transparent evidence in one dedicated repository. It never implements profile README writes, repository deletion, stars, followers, sponsors, reactions, or activity in third-party projects.
 
+### Guided mode — recommended
+
+Run the script without arguments in a terminal. It opens an English, numbered
+assistant that explains every choice, defaults to private evidence, previews
+writes, and runs one controlled event at a time.
+
+```bash
+python3 achievement_lab.py
+```
+
+No hidden defaults: the screen always shows the target account, repository,
+visibility, event, and exact count before confirmation.
+
+### Explicit commands — for repeatable workflows
+
 ```bash
 git clone https://github.com/angusu-de/achievement-lab.git
 cd achievement-lab
@@ -68,6 +83,7 @@ gh auth login --hostname github.com --web
 gh auth login --hostname github.com --web  # only for two-account scenarios
 
 python3 achievement_lab.py catalog
+python3 achievement_lab.py setup
 python3 achievement_lab.py --config achievement-lab.json doctor
 python3 achievement_lab.py --config achievement-lab.json --dry-run init
 python3 achievement_lab.py --config achievement-lab.json init
