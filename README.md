@@ -8,6 +8,7 @@
 </p>
 
 <p align="center">
+  <a href="https://angusu.de/achievement-lab/">Open the web workspace</a> ·
   <a href="docs/ACHIEVEMENTS.md">Achievement atlas</a> ·
   <a href="docs/PROFILE-README.md">Profile README</a> ·
   <a href="docs/BADGES-AND-TOPICS.md">Badges & topics</a> ·
@@ -22,6 +23,8 @@
 </p>
 
 ## Start here
+
+Prefer a visual start? **[Open the read-only web workspace](https://angusu.de/achievement-lab/)** to analyze public profile and repository signals, build an editable improvement plan, and jump to GitHub's official Achievement view. It never edits an account.
 
 Achievement Lab separates two jobs that are often mixed together:
 
