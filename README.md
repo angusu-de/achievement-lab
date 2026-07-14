@@ -8,7 +8,8 @@
 </p>
 
 <p align="center">
-  <a href="https://angusu.de/achievement-lab/">Open the web workspace</a> ·
+  <a href="https://angusu-de.github.io/achievement-lab/">Open the GitHub-hosted workspace</a> ·
+  <a href="https://codespaces.new/angusu-de/achievement-lab?quickstart=1">Run in Codespaces</a> ·
   <a href="docs/ACHIEVEMENTS.md">Achievement atlas</a> ·
   <a href="docs/PROFILE-README.md">Profile README</a> ·
   <a href="docs/BADGES-AND-TOPICS.md">Badges & topics</a> ·
@@ -24,7 +25,9 @@
 
 ## Start here
 
-Prefer a visual start? **[Open the read-only web workspace](https://angusu.de/achievement-lab/)** to analyze public profile and repository signals, build an editable improvement plan, and jump to GitHub's official Achievement view. It never edits an account.
+Prefer a visual start? **[Open the GitHub-hosted workspace](https://angusu-de.github.io/achievement-lab/)** to analyze public profile and repository signals, build a local checklist, and jump to GitHub's official Achievement view. It is served directly from this repository, talks directly to GitHub's public API, and never asks for a login or token.
+
+Want the guided runner without installing locally? **[Open the repository in GitHub Codespaces](https://codespaces.new/angusu-de/achievement-lab?quickstart=1)**. GitHub creates the browser workspace and handles your identity; Achievement Lab still previews every write and asks before acting.
 
 Achievement Lab separates two jobs that are often mixed together:
 
@@ -71,6 +74,10 @@ writes, and runs one controlled event at a time.
 ```bash
 python3 achievement_lab.py
 ```
+
+Or launch the same repository in GitHub's browser-based development environment:
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/angusu-de/achievement-lab?quickstart=1)
 
 The assistant detects GitHub accounts already connected through `gh`. Choose
 **Manage GitHub connection** to keep them or add another account with GitHub's
@@ -127,6 +134,14 @@ The visual language is intentionally quiet: warm paper, ink, one violet accent, 
 - **Unverified** means the name or trigger circulates without enough current evidence.
 
 GitHub decides whether and when an achievement appears. This project documents evidence; it does not promise badges and is not affiliated with GitHub.
+
+### Web trust boundary
+
+- The static dashboard is published from [`web/`](web/) through GitHub Pages.
+- Public profile requests go from the visitor's browser straight to `api.github.com`.
+- The dashboard contains no OAuth flow, client secret, personal access token input, or write endpoint.
+- Controlled write scenarios only run in a terminal the visitor controls: locally or inside GitHub Codespaces.
+- The branded mirror at [angusu.de/achievement-lab](https://angusu.de/achievement-lab/) links back here and follows the same read-only boundary.
 
 ## License
 
